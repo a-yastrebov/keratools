@@ -12,6 +12,7 @@ from keras.layers import Convolution2D, MaxPooling2D
 from keras.layers import Activation, Dropout, Flatten, Dense 
 from keras import backend as K
 from keras import callbacks
+from keras.utils import plot_model
 import sys
 import os
 import random
@@ -90,13 +91,17 @@ def trainModel(cnn_struct, full_con_cnt, m_num):
 		
 		if k == 0:	
 			model.add(Convolution2D(f_cnt, (3, 3), activation='relu', input_shape=inp_shape))
+			print("add input conv")
 		else:
 			model.add(Convolution2D(f_cnt, (3, 3), activation='relu'))
+			print("add conv")
 			
 		if drop > 0:
 			model.add(Dropout(drop))
+			print("add dropout")
 		if pooling == 1:
 			model.add(MaxPooling2D(pool_size=(2, 2)))
+			print("add pooling")
 		
 		k = k+1
 	
@@ -112,10 +117,10 @@ def trainModel(cnn_struct, full_con_cnt, m_num):
 		metrics=['accuracy']) 
 	
 	train_datagen = ImageDataGenerator( 
-		rescale=1. / 255
+		rescale=1. / 255,
 		#shear_range=0.2, 
 		#zoom_range=0.2 
-		#horizontal_flip=True
+		horizontal_flip=True
 		)	
 	
 	
@@ -141,13 +146,15 @@ def trainModel(cnn_struct, full_con_cnt, m_num):
 	model.fit_generator(
 		train_generator,
 		validation_data=validation_generator,
-		steps_per_epoch=(int)(nb_train_samples/batch_size),
+		steps_per_epoch=(int)(nb_train_samples/batch_size),#*2,
 		validation_steps=(int)(nb_validation_samples/batch_size),
 		epochs=nb_epochs,
 		callbacks=[cb1]
 		)	
 	
 	model.save(root_data_dir+'/res/nn{number:05}.h5'.format(number=m_num))
+	plot_model(model, to_file=root_data_dir+'/res/vis{number:05}.png'.format(number=m_num))
+	
 	
 random.seed()
 root_data_dir = ''
@@ -167,8 +174,8 @@ nb_train_samples = getSamplesCount(train_data_dir+'pos/')+getSamplesCount(train_
 print("{} train samples".format(nb_train_samples))
 nb_validation_samples = getSamplesCount(validation_data_dir+'pos/')+getSamplesCount(validation_data_dir+'neg/')
 print("{} vld samples".format(nb_validation_samples))
-nb_epochs = 10 
-batch_size = 8 
+nb_epochs = 50 
+batch_size = 10 
 
 m_num = 0
 while True:
@@ -176,11 +183,10 @@ while True:
 	#struct, fullconcnt = randomInit()
 	
 	#conv layers
-	struct.append((15,0.3,1))
-	struct.append((10,0.3,1))
-	struct.append((8,0.3,0))
-	#struct.append((10,0.3,0))	
-	
+	struct.append((10,0.4,1))
+	struct.append((20,0.4,0))
+	struct.append((25,0.4,0))	
+		
 	#penultimate fullcon layer
 	fullconcnt = 32
 	
