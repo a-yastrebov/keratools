@@ -125,7 +125,8 @@ def trainModel(cnn_struct, full_con_cnt, m_num):
 	
 	
 	test_datagen = ImageDataGenerator(
-		rescale=1. / 255
+		rescale=1. / 255,
+		horizontal_flip=True
 		) 
 	
 	train_generator = train_datagen.flow_from_directory(
@@ -146,8 +147,8 @@ def trainModel(cnn_struct, full_con_cnt, m_num):
 	model.fit_generator(
 		train_generator,
 		validation_data=validation_generator,
-		steps_per_epoch=(int)(nb_train_samples/batch_size),#*2,
-		validation_steps=(int)(nb_validation_samples/batch_size),
+		steps_per_epoch=(int)(nb_train_samples/batch_size)*2,
+		validation_steps=(int)(nb_validation_samples/batch_size)*2,
 		epochs=nb_epochs,
 		callbacks=[cb1]
 		)	
@@ -175,7 +176,7 @@ print("{} train samples".format(nb_train_samples))
 nb_validation_samples = getSamplesCount(validation_data_dir+'pos/')+getSamplesCount(validation_data_dir+'neg/')
 print("{} vld samples".format(nb_validation_samples))
 nb_epochs = 50 
-batch_size = 10 
+batch_size = 2 
 
 m_num = 0
 while True:
@@ -183,9 +184,9 @@ while True:
 	#struct, fullconcnt = randomInit()
 	
 	#conv layers
-	struct.append((10,0.4,1))
-	struct.append((20,0.4,0))
-	struct.append((25,0.4,0))	
+	struct.append((5,0.4,1))
+	struct.append((7,0.4,0))
+	struct.append((9,0.4,0))	
 		
 	#penultimate fullcon layer
 	fullconcnt = 32
