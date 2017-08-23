@@ -49,7 +49,7 @@ def matchPatterns(img0):
 	
 	n = 0
 	for r in results:
-		if r > 0.5:
+		if r > 0.4:
 			n = n+1
 	if len(results) == 0:
 		answer = 0
