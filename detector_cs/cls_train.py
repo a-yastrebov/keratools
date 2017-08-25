@@ -23,13 +23,13 @@ def getSamplesCount(path):
 	return cnt
 
 # dimensions of our images. 
-cls_win_width, cls_win_height = 32, 60 
+cls_win_width, cls_win_height = 24, 24
 
 cc_num = 1
 if len(sys.argv) > 1:
 	cc_num = sys.argv[1]
 	
-root_data_dir = 'data/32x60cc{}/'.format(cc_num)
+root_data_dir = 'data/head32x32cc{}/'.format(cc_num)
 train_data_dir = root_data_dir + 'train/' 
 validation_data_dir = root_data_dir + 'validation/'
 
@@ -50,21 +50,21 @@ else:
 	inpshape=(1, cls_win_height, cls_win_width)
 
 model = Sequential() 
-model.add(Convolution2D(16, (5, 5), activation='relu', input_shape=inpshape))
+model.add(Convolution2D(5, (3, 3), activation='relu', input_shape=inpshape))
 model.add(Dropout(0.2))
 model.add(MaxPooling2D(pool_size=(2, 2)))
 
-model.add(Convolution2D(32, (3, 3), activation='relu'))
+model.add(Convolution2D(7, (3, 3), activation='relu'))
 model.add(Dropout(0.2))
-model.add(MaxPooling2D(pool_size=(2, 2))) 
+#model.add(MaxPooling2D(pool_size=(2, 2))) 
 
-model.add(Convolution2D(32, (3, 3), activation='relu'))
-model.add(MaxPooling2D(pool_size=(2, 2))) 
+#model.add(Convolution2D(32, (3, 3), activation='relu'))
+#model.add(MaxPooling2D(pool_size=(2, 2))) 
 
 model.add(Flatten()) 
 model.add(Dense(32)) 
 model.add(Activation('relu')) 
-model.add(Dropout(0.5)) 
+model.add(Dropout(0.4)) 
 model.add(Dense(1)) 
 model.add(Activation('sigmoid')) 
 
