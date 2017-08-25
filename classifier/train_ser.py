@@ -57,12 +57,12 @@ def randomInit():
 		
 	for k in range(cnn_layers_cnt):
 		layer = []
-		layer.append(random.randint(1,64)) #filterscnt
+		layer.append(random.randint(4,20)) #filterscnt
 		
 		v = random.randint(0,9)
 		dropout = 0
 		if v >= 0:
-			dropout = random.uniform(0.1, 0.4)
+			dropout = random.uniform(0.2, 0.5)
 		layer.append(dropout) #dropout
 		
 		v = random.randint(0,9)
@@ -73,7 +73,7 @@ def randomInit():
 		
 		struct.append(layer)
 		
-	fullconcnt = random.randint(4,100)
+	fullconcnt = random.randint(10,50)
 	return struct, fullconcnt
 
 def trainModel(cnn_struct, full_con_cnt, m_num):
@@ -112,8 +112,11 @@ def trainModel(cnn_struct, full_con_cnt, m_num):
 	model.add(Dense(1)) 
 	model.add(Activation('sigmoid'))	
 	
-	model.compile(loss='binary_crossentropy', 
+	model.compile(
+		#loss='binary_crossentropy', 
+		loss='mean_squared_error', 
 		optimizer='rmsprop', 
+		#optimizer='adagrad',
 		metrics=['accuracy']) 
 	
 	train_datagen = ImageDataGenerator( 
@@ -134,7 +137,9 @@ def trainModel(cnn_struct, full_con_cnt, m_num):
 		target_size=(cls_win_height, cls_win_width),
 		batch_size=batch_size,
 		class_mode='binary',
-		color_mode='rgb') 
+		color_mode='rgb'
+		#save_to_dir=out_data_dir
+		) 
 	
 	validation_generator = test_datagen.flow_from_directory(
 		validation_data_dir,
@@ -167,6 +172,7 @@ else:
 	
 train_data_dir = root_data_dir + '/train/' 
 validation_data_dir = root_data_dir + '/validation/' 
+out_data_dir = root_data_dir + '/out/'
 
 loadDataSetParams(root_data_dir+'/ds.conf')
 print("w={}, h={}".format(cls_win_width, cls_win_height))
@@ -176,7 +182,7 @@ print("{} train samples".format(nb_train_samples))
 nb_validation_samples = getSamplesCount(validation_data_dir+'pos/')+getSamplesCount(validation_data_dir+'neg/')
 print("{} vld samples".format(nb_validation_samples))
 nb_epochs = 50 
-batch_size = 2 
+batch_size = 16 
 
 m_num = 0
 while True:
@@ -184,11 +190,10 @@ while True:
 	#struct, fullconcnt = randomInit()
 	
 	#conv layers
-	struct.append((5,0.4,1))
-	struct.append((7,0.4,0))
-	struct.append((9,0.4,0))	
-		
-	#penultimate fullcon layer
+	struct.append((8,0.3,1))
+	struct.append((10,0.3,0))
+	struct.append((12,0.3,0))	
+			
 	fullconcnt = 32
 	
 	print("=============================")
