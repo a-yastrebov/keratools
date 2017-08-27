@@ -121,8 +121,10 @@ def trainModel(cnn_struct, full_con_cnt, m_num):
 	
 	train_datagen = ImageDataGenerator( 
 		rescale=1. / 255,
-		#shear_range=0.2, 
-		#zoom_range=0.2 
+		shear_range=0.2, 
+		#zoom_range=[1,1.1],
+		height_shift_range=0.05,
+		width_shift_range=0.05,
 		horizontal_flip=True
 		)	
 	
@@ -152,14 +154,14 @@ def trainModel(cnn_struct, full_con_cnt, m_num):
 	model.fit_generator(
 		train_generator,
 		validation_data=validation_generator,
-		steps_per_epoch=(int)(nb_train_samples/batch_size)*2,
-		validation_steps=(int)(nb_validation_samples/batch_size)*2,
+		steps_per_epoch=(int)(nb_train_samples/batch_size)*10,
+		validation_steps=(int)(nb_validation_samples/batch_size)*10,
 		epochs=nb_epochs,
 		callbacks=[cb1]
 		)	
 	
 	model.save(root_data_dir+'/res/nn{number:05}.h5'.format(number=m_num))
-	plot_model(model, to_file=root_data_dir+'/res/vis{number:05}.png'.format(number=m_num))
+	#plot_model(model, to_file=root_data_dir+'/res/vis{number:05}.png'.format(number=m_num))
 	
 	
 random.seed()
@@ -182,7 +184,7 @@ print("{} train samples".format(nb_train_samples))
 nb_validation_samples = getSamplesCount(validation_data_dir+'pos/')+getSamplesCount(validation_data_dir+'neg/')
 print("{} vld samples".format(nb_validation_samples))
 nb_epochs = 50 
-batch_size = 16 
+batch_size = 2 
 
 m_num = 0
 while True:
@@ -190,9 +192,9 @@ while True:
 	#struct, fullconcnt = randomInit()
 	
 	#conv layers
-	struct.append((8,0.3,1))
-	struct.append((10,0.3,0))
-	struct.append((12,0.3,0))	
+	struct.append((5,0.3,1))
+	struct.append((7,0.3,1))
+	struct.append((9,0.3,0))	
 			
 	fullconcnt = 32
 	
@@ -201,3 +203,4 @@ while True:
 	
 	trainModel(struct, fullconcnt, m_num)
 	m_num = m_num+1
+	break
