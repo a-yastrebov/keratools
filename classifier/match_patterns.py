@@ -6,7 +6,7 @@
 # MIT License, see LICENSE file.
 ##################################################################
 
-#coding=utf-8
+#coding=cp1251
 from keras.models import load_model
 from keras.preprocessing import image as image_utils
 import numpy as np
@@ -28,20 +28,29 @@ def matchPatterns(img):
 	np_images = np.vstack(images)
 	res = model.predict(np_images)
 	
-	print("response: {}".format(res[0][0]))
+	#print("response: {}".format(res[0][0]))
 	
 	return res[0][0]
 
 
 def matchPatternsFromFile(imagefn):
 	img = cv2.imread(imagefn)
+	img = cv2.resize(img,(30,60))
 	img = img.astype(float)/255	
 	
 	match = matchPatterns(img)
 	return match	
+	
+def matchPatternsFromDir(dir):
+	fns= os.listdir(dir) #file names with dissimilar patterns	
+	
+	for fn in fns:
+		if fn.endswith(".png") or fn.endswith(".bmp") or fn.endswith(".jpg"):
+			v = matchPatternsFromFile(dir+"/"+fn)
+			print("{} {}".format(fn,v)) 
 
 #===== main =====
 
-model = load_model('nn.h5')
-match = matchPatternsFromFile(sys.argv[1])
-print(match)
+model = load_model('nn00000.h5')
+match = matchPatternsFromDir(sys.argv[1])
+

@@ -18,6 +18,7 @@ import os
 import random
 
 cls_win_width, cls_win_height = 0,0 
+colorimage = True
 
 def getSamplesCount(path):
 	cnt = 0
@@ -41,6 +42,7 @@ def loadDataSetParams(path):
 def logStruct(cnn_struct, full_con_cnt, m_num):
 	inp_shape=(3, cls_win_height, cls_win_width)
 	f = open(root_data_dir+"/res/struct{number:05}.txt".format(number=m_num),"w")
+	f.write("{}x{}\n".format(cls_win_width,cls_win_height))
 	k = 1
 	for layer in cnn_struct:
 		f_cnt = layer[0]
@@ -80,7 +82,11 @@ def trainModel(cnn_struct, full_con_cnt, m_num):
 	"""cnn_struct:((filterscnt,drop,pooling2x2(1-use,0-don't use)),...)"""
 	logStruct(cnn_struct, full_con_cnt, m_num)
 	
-	inp_shape=(3, cls_win_height, cls_win_width)
+	if colorimage == True:
+		inp_shape=(3, cls_win_height, cls_win_width)
+	else:
+		inp_shape=(1, cls_win_height, cls_win_width)
+	#inp_shape=(3, cls_win_height, cls_win_width)
 	k = 0
 	
 	model = Sequential() 
@@ -121,32 +127,39 @@ def trainModel(cnn_struct, full_con_cnt, m_num):
 	
 	train_datagen = ImageDataGenerator( 
 		rescale=1. / 255,
-		shear_range=0.2, 
-		#zoom_range=[1,1.1],
-		height_shift_range=0.05,
-		width_shift_range=0.05,
-		horizontal_flip=True
+		#shear_range=0.3, 
+		#rotation_range=8,
+		#zoom_range=[0.95,1.1]
+		height_shift_range=0.1,
+		width_shift_range=0.1,
+		fill_mode='reflect',
+		horizontal_flip=True		
 		)	
 	
 	
 	test_datagen = ImageDataGenerator(
 		rescale=1. / 255,
-		horizontal_flip=True
+		horizontal_flip=True		
 		) 
 	
+	if colorimage == True:
+		colmode='rgb'
+	else:
+		colmode='grayscale'	
+		
 	train_generator = train_datagen.flow_from_directory(
 		train_data_dir,
 		target_size=(cls_win_height, cls_win_width),
 		batch_size=batch_size,
 		class_mode='binary',
-		color_mode='rgb'
+		color_mode=colmode
 		#save_to_dir=out_data_dir
 		) 
 	
 	validation_generator = test_datagen.flow_from_directory(
 		validation_data_dir,
 		target_size=(cls_win_height, cls_win_width),
-		batch_size=batch_size, class_mode='binary', color_mode='rgb') 
+		batch_size=batch_size, class_mode='binary', color_mode=colmode) 
 	
 	cb1 = callbacks.CSVLogger(root_data_dir+"/res/log{number:05}.txt".format(number=m_num))
 	
@@ -154,8 +167,8 @@ def trainModel(cnn_struct, full_con_cnt, m_num):
 	model.fit_generator(
 		train_generator,
 		validation_data=validation_generator,
-		steps_per_epoch=(int)(nb_train_samples/batch_size)*10,
-		validation_steps=(int)(nb_validation_samples/batch_size)*10,
+		steps_per_epoch=(int)(nb_train_samples/batch_size)*2,
+		validation_steps=(int)(nb_validation_samples/batch_size)*2,
 		epochs=nb_epochs,
 		callbacks=[cb1]
 		)	
@@ -183,8 +196,8 @@ nb_train_samples = getSamplesCount(train_data_dir+'pos/')+getSamplesCount(train_
 print("{} train samples".format(nb_train_samples))
 nb_validation_samples = getSamplesCount(validation_data_dir+'pos/')+getSamplesCount(validation_data_dir+'neg/')
 print("{} vld samples".format(nb_validation_samples))
-nb_epochs = 50 
-batch_size = 2 
+nb_epochs = 100 
+batch_size = 8
 
 m_num = 0
 while True:
@@ -192,15 +205,16 @@ while True:
 	#struct, fullconcnt = randomInit()
 	
 	#conv layers
-	struct.append((5,0.3,1))
-	struct.append((7,0.3,1))
-	struct.append((9,0.3,0))	
+	struct.append((10,0.3,1))
+	struct.append((15,0.3,1))
+	struct.append((20,0.3,0))
+	#struct.append((20,0.3,0))
+	#struct.append((15,0.3,0))
 			
-	fullconcnt = 32
-	
+	fullconcnt = 32	
 	print("=============================")
 	print("cnn {}".format(m_num))
 	
 	trainModel(struct, fullconcnt, m_num)
 	m_num = m_num+1
-	break
+	
