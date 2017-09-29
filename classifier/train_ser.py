@@ -83,9 +83,9 @@ def trainModel(cnn_struct, full_con_cnt, m_num):
 	logStruct(cnn_struct, full_con_cnt, m_num)
 	
 	if colorimage == True:
-		inp_shape=(3, cls_win_height, cls_win_width)
+		inp_shape=(cls_win_height, cls_win_width, 3)
 	else:
-		inp_shape=(1, cls_win_height, cls_win_width)
+		inp_shape=(cls_win_height, cls_win_width, 1)
 	#inp_shape=(3, cls_win_height, cls_win_width)
 	k = 0
 	
@@ -96,7 +96,7 @@ def trainModel(cnn_struct, full_con_cnt, m_num):
 		pooling = layer[2]
 		
 		if k == 0:	
-			model.add(Convolution2D(f_cnt, (3, 3), activation='relu', input_shape=inp_shape))
+			model.add(Convolution2D(f_cnt, (3, 3), activation='relu', input_shape=inp_shape, name='input_node0'))
 			print("add input conv")
 		else:
 			model.add(Convolution2D(f_cnt, (3, 3), activation='relu'))
@@ -128,7 +128,7 @@ def trainModel(cnn_struct, full_con_cnt, m_num):
 	train_datagen = ImageDataGenerator( 
 		rescale=1. / 255,
 		#shear_range=0.3, 
-		#rotation_range=8,
+		#rotation_range=10,
 		#zoom_range=[0.95,1.1]
 		height_shift_range=0.1,
 		width_shift_range=0.1,
@@ -168,7 +168,7 @@ def trainModel(cnn_struct, full_con_cnt, m_num):
 		train_generator,
 		validation_data=validation_generator,
 		steps_per_epoch=(int)(nb_train_samples/batch_size)*2,
-		validation_steps=(int)(nb_validation_samples/batch_size)*2,
+		validation_steps=(int)(nb_validation_samples),
 		epochs=nb_epochs,
 		callbacks=[cb1]
 		)	
@@ -176,7 +176,7 @@ def trainModel(cnn_struct, full_con_cnt, m_num):
 	model.save(root_data_dir+'/res/nn{number:05}.h5'.format(number=m_num))
 	#plot_model(model, to_file=root_data_dir+'/res/vis{number:05}.png'.format(number=m_num))
 	
-	
+
 random.seed()
 root_data_dir = ''
 if len(sys.argv) > 1:
@@ -196,7 +196,7 @@ nb_train_samples = getSamplesCount(train_data_dir+'pos/')+getSamplesCount(train_
 print("{} train samples".format(nb_train_samples))
 nb_validation_samples = getSamplesCount(validation_data_dir+'pos/')+getSamplesCount(validation_data_dir+'neg/')
 print("{} vld samples".format(nb_validation_samples))
-nb_epochs = 100 
+nb_epochs = 20 
 batch_size = 8
 
 m_num = 0
@@ -205,11 +205,11 @@ while True:
 	#struct, fullconcnt = randomInit()
 	
 	#conv layers
-	struct.append((10,0.3,1))
-	struct.append((15,0.3,1))
+	struct.append((10,0.3,0))
+	struct.append((15,0.3,0))
 	struct.append((20,0.3,0))
 	#struct.append((20,0.3,0))
-	#struct.append((15,0.3,0))
+	#struct.append((20,0.3,0))
 			
 	fullconcnt = 32	
 	print("=============================")

@@ -20,8 +20,14 @@ def matchPatterns(img):
 	images = []
 	np_images = []	
 	
-	img1 = img.transpose((2,0,1)) 
-	img1 = np.expand_dims(img1, axis=0) 
+	#img = img.transpose((2,0,1))
+	
+	
+	#for j in range(0,h):
+	#	for i in range(0,w):
+	#		print(img[j][i][0],img[j][i][1],img[j][i][2])
+	
+	img1 = np.expand_dims(img, axis=0) 
 	
 	images.append(img1)
 	
@@ -34,8 +40,9 @@ def matchPatterns(img):
 
 
 def matchPatternsFromFile(imagefn):
-	img = cv2.imread(imagefn)
-	img = cv2.resize(img,(30,60))
+	img = cv2.imread(imagefn,)
+	img = cv2.resize(img,(32,32))
+	img = cv2.cvtColor(img,cv2.COLOR_BGR2RGB)
 	img = img.astype(float)/255	
 	
 	match = matchPatterns(img)
@@ -51,6 +58,6 @@ def matchPatternsFromDir(dir):
 
 #===== main =====
 
-model = load_model('nn00000.h5')
-match = matchPatternsFromDir(sys.argv[1])
+model = load_model(sys.argv[1])
+match = matchPatternsFromDir(sys.argv[2])
 

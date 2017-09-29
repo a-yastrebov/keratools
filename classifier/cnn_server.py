@@ -68,6 +68,7 @@ def classifyByStage(stage, np_images):
 		return False
 		
 def classifyByCascade(cascade, img0):
+	# Returns number of stage removed the object image or 0 if object image passed all stages
 	h,w,c = img0.shape
 	global patt_num
 		
@@ -86,10 +87,12 @@ def classifyByCascade(cascade, img0):
 	
 	answer = 0
 	
+	stNum = 0;
 	for st in cascade:
+		stNum = stNum + 1
 		res = classifyByStage(st, np_images)
 		if res == True:
-			answer = 1
+			answer = stNum
 			break
 	
 	#print("response: {} {} {}".format(res1[0][0],res2[0][0],res3[0][0]))
@@ -222,7 +225,8 @@ while True:
 		for img in imgs:			
 			v1 = matchFromBytes(cascade, img)
 			print("img done: {}".format(v1))
-			a = int(v1*100+0.5)
+			#a = int(v1*100+0.5)
+			a = int(v1)
 			answers.append(a)
 			
 		b = bytes(answers)
