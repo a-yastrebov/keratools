@@ -12,7 +12,11 @@ from keras.layers import Convolution2D, MaxPooling2D
 from keras.layers import Activation, Dropout, Flatten, Dense 
 from keras import backend as K
 from keras import callbacks
+from keras.models import load_model
 from keras.utils import plot_model
+import tensorflow as tf
+from tensorflow.python.framework import graph_util
+from tensorflow.python.framework import graph_io
 import sys
 import os
 import random
@@ -96,7 +100,7 @@ def trainModel(cnn_struct, full_con_cnt, m_num):
 		pooling = layer[2]
 		
 		if k == 0:	
-			model.add(Convolution2D(f_cnt, (3, 3), activation='relu', input_shape=inp_shape, name='input_node0'))
+			model.add(Convolution2D(f_cnt, (3, 3), activation='relu', input_shape=inp_shape, name='inpnode'))
 			print("add input conv")
 		else:
 			model.add(Convolution2D(f_cnt, (3, 3), activation='relu'))
@@ -128,10 +132,10 @@ def trainModel(cnn_struct, full_con_cnt, m_num):
 	train_datagen = ImageDataGenerator( 
 		rescale=1. / 255,
 		#shear_range=0.3, 
-		#rotation_range=10,
+		rotation_range=10,
 		#zoom_range=[0.95,1.1]
-		height_shift_range=0.1,
-		width_shift_range=0.1,
+		height_shift_range=0.15,
+		width_shift_range=0.15,
 		fill_mode='reflect',
 		horizontal_flip=True		
 		)	
@@ -159,7 +163,7 @@ def trainModel(cnn_struct, full_con_cnt, m_num):
 	validation_generator = test_datagen.flow_from_directory(
 		validation_data_dir,
 		target_size=(cls_win_height, cls_win_width),
-		batch_size=batch_size, class_mode='binary', color_mode=colmode) 
+		batch_size=1, class_mode='binary', color_mode=colmode) 
 	
 	cb1 = callbacks.CSVLogger(root_data_dir+"/res/log{number:05}.txt".format(number=m_num))
 	
@@ -173,8 +177,24 @@ def trainModel(cnn_struct, full_con_cnt, m_num):
 		callbacks=[cb1]
 		)	
 	
-	model.save(root_data_dir+'/res/nn{number:05}.h5'.format(number=m_num))
+	return model
 	#plot_model(model, to_file=root_data_dir+'/res/vis{number:05}.png'.format(number=m_num))
+	
+def get_frozen_tf_graph(model):
+	num_output = 1 # число выходных слоёв
+	pred = [None]*num_output
+	output_node_names = [None]*num_output
+	for i in range(0, num_output):
+		output_node_names[i] = 'output_node' + str(i)
+		pred[i] = tf.identity(model.output[i], name=output_node_names[i])
+		
+	print('output nodes names are: ', output_node_names)
+	
+	sess = K.get_session()
+	
+	frozen_graph = graph_util.convert_variables_to_constants(sess, sess.graph.as_graph_def(), output_node_names)
+	
+	return frozen_graph
 	
 
 random.seed()
@@ -196,25 +216,36 @@ nb_train_samples = getSamplesCount(train_data_dir+'pos/')+getSamplesCount(train_
 print("{} train samples".format(nb_train_samples))
 nb_validation_samples = getSamplesCount(validation_data_dir+'pos/')+getSamplesCount(validation_data_dir+'neg/')
 print("{} vld samples".format(nb_validation_samples))
-nb_epochs = 20 
-batch_size = 8
+nb_epochs = 50 
+batch_size = 16
 
 m_num = 0
+
+file_dir = os.path.join(root_data_dir, 'res')
+
 while True:
 	struct = []
 	#struct, fullconcnt = randomInit()
 	
 	#conv layers
-	struct.append((10,0.3,0))
+	struct.append((10,0.3,1))
 	struct.append((15,0.3,0))
 	struct.append((20,0.3,0))
 	#struct.append((20,0.3,0))
 	#struct.append((20,0.3,0))
 			
-	fullconcnt = 32	
+	fullconcnt = 64	
 	print("=============================")
 	print("cnn {}".format(m_num))
 	
-	trainModel(struct, fullconcnt, m_num)
-	m_num = m_num+1
+	model = trainModel(struct, fullconcnt, m_num)
 	
+	model.save(root_data_dir+'/res/nn{number:05}.h5'.format(number=m_num))
+	K.set_learning_phase(0)
+		
+	model1 = load_model(root_data_dir+'/res/nn{number:05}.h5'.format(number=m_num))	
+	frozen_graph = get_frozen_tf_graph(model1)
+	tf.train.write_graph(frozen_graph, file_dir,'nn{number:05}.ascii'.format(number=m_num), as_text=True)
+	tf.train.write_graph(frozen_graph, file_dir,'nn{number:05}.pb'.format(number=m_num), as_text=False)
+	
+	m_num = m_num+1
