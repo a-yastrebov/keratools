@@ -1,5 +1,5 @@
 ##################################################################
-# Train new classifier
+# Train new NN classifier
 # Example: train.py <dataset_dir>
 # 
 # Copyright (c) 2017 Alexey Yastrebov
@@ -16,7 +16,11 @@ import sys
 import os
 
 def getSamplesCount(path):
+	"""
+	count number of images in specified directory
+	"""
 	cnt = 0
+	print("path="+path)
 	filenames = os.listdir(path)
 	for fn in filenames:
 		if fn.endswith(".png") or fn.endswith(".bmp") or fn.endswith(".jpg"):
@@ -24,7 +28,7 @@ def getSamplesCount(path):
 	return cnt
 
 # dimensions of our images. 
-cls_win_width, cls_win_height = 32*2+3, 60 
+cls_win_width, cls_win_height = 32, 60
 
 root_data_dir = ''
 if len(sys.argv) > 1:
@@ -33,46 +37,53 @@ else:
 	print("use train.py <dataset_dir>")
 	exit(1)
 	
-train_data_dir = root_data_dir + '/train/' 
-validation_data_dir = root_data_dir + '/validation/' 
+train_data_dir = os.path.join(root_data_dir,'train')
+validation_data_dir = os.path.join(root_data_dir,'validation')
 
-nb_train_samples = getSamplesCount(train_data_dir+'pos/')+getSamplesCount(train_data_dir+'neg/')
+nb_train_samples = getSamplesCount(os.path.join(train_data_dir,'pos'))+getSamplesCount(os.path.join(train_data_dir,'neg'))
 print("{} train samples".format(nb_train_samples))
-nb_validation_samples = getSamplesCount(validation_data_dir+'pos/')+getSamplesCount(validation_data_dir+'neg/')
+nb_validation_samples = getSamplesCount(os.path.join(validation_data_dir,'pos'))+getSamplesCount(os.path.join(validation_data_dir,'neg'))
 print("{} vld samples".format(nb_validation_samples))
-nb_epochs = 20 
+
+# training meta parameters
+nb_epochs = 50 
 batch_size = 32 
 
+#model creation
 model = Sequential() 
-model.add(Convolution2D(2, (3, 3), activation='relu', input_shape=(3, cls_win_height, cls_win_width)))
-model.add(Dropout(0.2))
+model.add(Convolution2D(20, (3, 3), activation='relu', input_shape=(cls_win_height, cls_win_width, 3)))
+#model.add(Dropout(0.3))
 model.add(MaxPooling2D(pool_size=(2, 2)))
 
-model.add(Convolution2D(4, (3, 3), activation='relu'))
-model.add(Dropout(0.2))
+model.add(Convolution2D(20, (3, 3), activation='relu'))
+#model.add(Dropout(0.3))
 model.add(MaxPooling2D(pool_size=(2, 2))) 
 
-model.add(Convolution2D(8, (3, 3), activation='relu'))
-model.add(Dropout(0.2))
+model.add(Convolution2D(20, (3, 3), activation='relu'))
+#model.add(Dropout(0.3))
 #model.add(MaxPooling2D(pool_size=(2, 2))) 
 
 model.add(Flatten()) 
-model.add(Dense(16)) 
+model.add(Dense(32)) 
 model.add(Activation('relu')) 
-model.add(Dropout(0.5)) 
+#model.add(Dropout(0.3)) 
 model.add(Dense(1)) 
 model.add(Activation('sigmoid')) 
 
 
-model.compile(loss='binary_crossentropy', 
+model.compile(
+	#loss='binary_crossentropy', 
+	loss='mean_squared_error', 
 	optimizer='rmsprop', 
 	metrics=['accuracy']) 
 
-
+# train dataset generator
 train_datagen = ImageDataGenerator( 
 	rescale=1. / 255
 	#shear_range=0.2, 
-	#zoom_range=0.2 
+	#zoom_range=0.2,
+	#height_shift_range=0.1,
+	#width_shift_range=0.1,	
 	#horizontal_flip=True
 	) 
 
@@ -92,8 +103,9 @@ validation_generator = test_datagen.flow_from_directory(
 	target_size=(cls_win_height, cls_win_width),
 	batch_size=batch_size, class_mode='binary', color_mode='rgb') 
 
-cb1 = callbacks.CSVLogger("log1.txt")
+cb1 = callbacks.CSVLogger("log.txt")
 
+#train model
 model.fit_generator(
 	train_generator,
 	validation_data=validation_generator,
