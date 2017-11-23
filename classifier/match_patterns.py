@@ -1,6 +1,6 @@
 ##################################################################
 # Match two patterns in one two-pattern image
-# Works only for color images
+# Works for color images only
 # 
 # Copyright (c) 2017 Alexey Yastrebov
 # MIT License, see LICENSE file.
@@ -13,6 +13,8 @@ import numpy as np
 import cv2
 import os
 import sys
+
+cls_win_width, cls_win_height = 32, 60
 
 def matchPatterns(img):
 	h,w,c = img.shape
@@ -41,7 +43,7 @@ def matchPatterns(img):
 
 def matchPatternsFromFile(imagefn):
 	img = cv2.imread(imagefn,)
-	img = cv2.resize(img,(32,32))
+	img = cv2.resize(img,(cls_win_width,cls_win_height))
 	img = cv2.cvtColor(img,cv2.COLOR_BGR2RGB)
 	img = img.astype(float)/255	
 	
@@ -49,8 +51,9 @@ def matchPatternsFromFile(imagefn):
 	return match	
 	
 def matchPatternsFromDir(dir):
-	fns= os.listdir(dir) #file names with dissimilar patterns	
+	fns= os.listdir(dir)
 	
+	print("")
 	for fn in fns:
 		if fn.endswith(".png") or fn.endswith(".bmp") or fn.endswith(".jpg"):
 			v = matchPatternsFromFile(dir+"/"+fn)
