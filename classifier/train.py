@@ -1,6 +1,16 @@
 ##################################################################
 # Train new NN classifier
 # Example: train.py <dataset_dir>
+#
+# dataset_dir structure:
+#
+# dataset_dir
+#   train
+#     pos
+#     neg
+#   validation
+#     pos
+#     neg
 # 
 # Copyright (c) 2017 Alexey Yastrebov
 # MIT License, see LICENSE file.
@@ -52,21 +62,21 @@ batch_size = 32
 #model creation
 model = Sequential() 
 model.add(Convolution2D(20, (3, 3), activation='relu', input_shape=(cls_win_height, cls_win_width, 3)))
-#model.add(Dropout(0.3))
+model.add(Dropout(0.3))
 model.add(MaxPooling2D(pool_size=(2, 2)))
 
 model.add(Convolution2D(20, (3, 3), activation='relu'))
-#model.add(Dropout(0.3))
+model.add(Dropout(0.3))
 model.add(MaxPooling2D(pool_size=(2, 2))) 
 
 model.add(Convolution2D(20, (3, 3), activation='relu'))
-#model.add(Dropout(0.3))
+model.add(Dropout(0.3))
 #model.add(MaxPooling2D(pool_size=(2, 2))) 
 
 model.add(Flatten()) 
 model.add(Dense(32)) 
 model.add(Activation('relu')) 
-#model.add(Dropout(0.3)) 
+model.add(Dropout(0.3)) 
 model.add(Dense(1)) 
 model.add(Activation('sigmoid')) 
 
@@ -79,12 +89,12 @@ model.compile(
 
 # train dataset generator
 train_datagen = ImageDataGenerator( 
-	rescale=1. / 255
+	rescale=1. / 255,
 	#shear_range=0.2, 
 	#zoom_range=0.2,
-	#height_shift_range=0.1,
-	#width_shift_range=0.1,	
-	#horizontal_flip=True
+	height_shift_range=0.1,
+	width_shift_range=0.1,	
+	horizontal_flip=True
 	) 
 
 test_datagen = ImageDataGenerator(
